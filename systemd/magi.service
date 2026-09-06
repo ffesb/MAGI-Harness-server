@@ -1,0 +1,21 @@
+[Unit]
+Description=MAGI Harness Daemon - Autonomous Evangelion-style Server Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/fesb/.local/share/magi
+ExecStart=/home/fesb/.local/share/magi/.venv/bin/python -m magi.daemon
+Environment="PATH=/home/fesb/.local/share/magi/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+Restart=on-failure
+RestartSec=5s
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

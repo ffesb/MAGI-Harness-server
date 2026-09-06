@@ -1,0 +1,104 @@
+# Risk Tier Configuration for MAGI Harness
+# Tiers:
+# 0: Read-only / Informational (No MAGI vote required)
+# 1: Reversible / Low impact (Simple majority 2-1 or 3-0)
+# 2: Critical / Hard to reverse (Unanimity 3-0 + Explicit Human Confirmation)
+# 3: Irreversible / Self-referential (Unanimity 3-0 + Explicit Human Confirmation ALWAYS)
+
+tiers:
+  0:
+    name: "read_only"
+    description: "Operaciones informativas y de solo lectura"
+    requires_vote: false
+    requires_human_confirmation: false
+    quorum: "none"
+  1:
+    name: "low_impact"
+    description: "Operaciones reversibles o de bajo impacto operativo"
+    requires_vote: true
+    requires_human_confirmation: false
+    quorum: "majority" # 2-1 or 3-0
+  2:
+    name: "critical"
+    description: "Operaciones críticas o difíciles de revertir"
+    requires_vote: true
+    requires_human_confirmation: true
+    quorum: "unanimity" # 3-0
+  3:
+    name: "irreversible"
+    description: "Operaciones irreversibles o que afectan la integridad de MAGI/SO"
+    requires_vote: true
+    requires_human_confirmation: true
+    quorum: "unanimity" # 3-0
+
+tools:
+  # Tier 0 (Read-only)
+  read_file:
+    tier: 0
+    description: "Lectura segura de archivos o logs"
+  list_directory:
+    tier: 0
+    description: "Listar archivos en directorios"
+  inspect_docker:
+    tier: 0
+    description: "Inspección de contenedores, redes y volúmenes Docker"
+  inspect_systemd:
+    tier: 0
+    description: "Consultar estado de servicios systemd y métricas de servidor"
+  web_search:
+    tier: 0
+    description: "Búsqueda de información web con citas de fuentes"
+
+  # Tier 1 (Low impact)
+  docker_container_restart:
+    tier: 1
+    description: "Reinicio suave de un contenedor Docker existente"
+  docker_container_start:
+    tier: 1
+    description: "Iniciar un contenedor Docker detenido"
+  cronjob_create:
+    tier: 1
+    description: "Crear una tarea programada interna en el harness"
+  cronjob_delete:
+    tier: 1
+    description: "Eliminar una tarea programada interna del harness"
+  write_temp_file:
+    tier: 1
+    description: "Escritura o modificación en rutas temporales (/tmp)"
+
+  # Tier 2 (Critical)
+  docker_container_stop:
+    tier: 2
+    description: "Detener un contenedor en producción"
+  docker_container_remove:
+    tier: 2
+    description: "Eliminar un contenedor Docker"
+  docker_system_prune:
+    tier: 2
+    description: "Limpieza de volúmenes o imágenes huérfanas de Docker"
+  package_install:
+    tier: 2
+    description: "Instalar un paquete de software del sistema operativo"
+  package_remove:
+    tier: 2
+    description: "Desinstalar un paquete de software del sistema operativo"
+  write_config_file:
+    tier: 2
+    description: "Modificar un archivo de configuración (/etc o servicios)"
+  firewall_modify:
+    tier: 2
+    description: "Modificar reglas de firewall o red"
+
+  # Tier 3 (Irreversible)
+  system_reboot:
+    tier: 3
+    description: "Reiniciar el servidor físico/virtual"
+  system_poweroff:
+    tier: 3
+    description: "Apagar el servidor"
+  magi_self_modify:
+    tier: 3
+    description: "Modificar permisos de sudoers, binarios o DB del propio MAGI"
+  credentials_modify:
+    tier: 3
+    description: "Operaciones sobre credenciales, llaves SSH o certificados raíz"

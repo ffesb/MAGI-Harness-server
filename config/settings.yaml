@@ -1,0 +1,29 @@
+# MAGI Harness Configuration
+app_name: "MAGI Harness"
+version: "0.1.0"
+
+paths:
+  db_path: "data/magi.db"
+  audit_log_dir: "logs"
+  ipc_socket: "data/magi.sock"
+  minds_dir: "config/minds"
+  risk_tiers_file: "config/risk_tiers.yaml"
+
+search:
+  provider: "searxng"
+  searxng_url: "https://fe-sv.tail7345d6.ts.net:4000/"
+  max_results: 5
+
+security:
+  allowed_user_ids:
+    - 7223503347
+
+magi:
+  enabled_default: true
+  min_confidence_threshold: 0.6
+  council_timeout_seconds: 35
+
+heartbeat:
+  interval_seconds: 60
+  daily_summary_time: "09:00"
+  silent_if_nominal: false

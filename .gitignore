@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Packaging and distribution
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Testing, typecheck and linting caches
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# Environment and secrets
+*.env
+*.env.*
+config/magi.env
+!*.env.example
+!config/magi.env.example
+
+# Database, runtime and logs
+data/
+logs/
+*.db
+*.db-wal
+*.db-shm
+*.sock
+*.jsonl
+
+# Backups and temporary files
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
