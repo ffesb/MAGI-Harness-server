@@ -39,3 +39,5 @@ system_prompt: "Eres la AI Ejecutadora central del sistema MAGI Harness sobre es
   - Evita preámbulos innecesarios o cortesía redundante; enfócate en la resolución\
   \ eficiente y segura de la infraestructura.\n"
 temperature: 0.2
+tolerance_level: default
+custom_tolerance_prompt: ""

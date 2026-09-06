@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from magi.core.config import Settings
+from magi.core.config import Settings, get_effective_system_prompt
 from magi.core.db import Database
 from magi.core.audit import AuditLogger
 from magi.core.provider import OpenRouterClient
@@ -109,7 +109,7 @@ class ExecutorAgent:
 
         mind_cfg = self.settings.minds.get("EXECUTOR")
         system_prompt = (
-            mind_cfg.system_prompt
+            get_effective_system_prompt(mind_cfg)
             if mind_cfg
             else "Eres la AI Ejecutadora de MAGI Harness."
         )

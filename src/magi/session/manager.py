@@ -23,6 +23,8 @@ class SessionManager:
                 "temperature": mind_cfg.temperature,
                 "max_tokens": mind_cfg.max_tokens,
                 "system_prompt": mind_cfg.system_prompt,
+                "tolerance_level": mind_cfg.tolerance_level,
+                "custom_tolerance_prompt": mind_cfg.custom_tolerance_prompt,
             }
         return snapshot
 

@@ -28,6 +28,48 @@ class MindConfig(BaseModel):
     max_tokens: int = 1500
     enabled: bool = True
     system_prompt: str
+    tolerance_level: str = "default"  # "default", "seguridad", "solo_personalidad", "personalizado"
+    custom_tolerance_prompt: str = ""
+
+
+# Criterios de tolerancia predefinidos (invisibles al usuario salvo en modo avanzado)
+TOLERANCE_DEFAULT = (
+    "PRIORIDAD: CRITERIO DE TOLERANCIA [NIVEL: DEFAULT]\n"
+    "Evalúa la propuesta balanceando la intención del operador con la matriz de Risk Tiers (Tier 0 a 3) "
+    "y la preservación del sistema. Aprueba si la acción es técnicamente consistente, contextualmente proporcionada, "
+    "justificada por telemetría o evidencia empírica, y cuenta con reversibilidad o mitigación acorde a su Tier. "
+    "Rechaza únicamente ante asunciones no demostradas, riesgos críticos desproporcionados no mitigados "
+    "o discrepancia con el objetivo del operador."
+)
+
+TOLERANCE_SECURITY = (
+    "PRIORIDAD: CRITERIO DE TOLERANCIA [NIVEL: SEGURIDAD MÁXIMA]\n"
+    "Aplica tolerancia cero ante cualquier riesgo potencial. Si la acción propuesta presenta la más mínima "
+    "probabilidad de desestabilizar el servidor, corromper archivos, romper dependencias de paquetes, "
+    "degradar contenedores esenciales o borrar información de manera irreversible, tu veredicto OBLIGATORIO es \"reject\". "
+    "Exige máxima cautela y prioriza la inviolabilidad y estabilidad operativa absoluta de la infraestructura "
+    "por encima de la conveniencia o la prisa."
+)
+
+
+def get_effective_system_prompt(mind_cfg: MindConfig) -> str:
+    """Calcula el system prompt final inyectando el criterio de tolerancia correspondiente."""
+    level = (mind_cfg.tolerance_level or "default").lower().strip()
+    base_prompt = mind_cfg.system_prompt.strip()
+
+    if level == "solo_personalidad":
+        return base_prompt
+    elif level == "seguridad":
+        return f"{base_prompt}\n\n{TOLERANCE_SECURITY}"
+    elif level == "personalizado":
+        custom = (mind_cfg.custom_tolerance_prompt or "").strip()
+        if not custom:
+            return base_prompt
+        if not custom.startswith("PRIORIDAD: CRITERIO DE TOLERANCIA"):
+            custom = f"PRIORIDAD: CRITERIO DE TOLERANCIA [NIVEL: PERSONALIZADO]\n{custom}"
+        return f"{base_prompt}\n\n{custom}"
+    else:  # default
+        return f"{base_prompt}\n\n{TOLERANCE_DEFAULT}"
 
 
 class Settings(BaseModel):
@@ -60,6 +102,11 @@ class Settings(BaseModel):
 
     # Minds
     minds: Dict[str, MindConfig] = Field(default_factory=dict)
+
+    # Web GUI
+    web_host: str = "127.0.0.1"
+    web_port: int = 8080
+    web_enabled: bool = True
 
     def is_user_allowed(self, user_id: int) -> bool:
         return user_id in self.allowed_user_ids
@@ -165,6 +212,39 @@ def update_mind_system_prompt(settings: Settings, mind_name: str, new_prompt: st
     return True
 
 
+def update_mind_tolerance(
+    settings: Settings,
+    mind_name: str,
+    level: str,
+    custom_text: Optional[str] = None,
+) -> bool:
+    key = mind_name.upper()
+    if key not in settings.minds:
+        return False
+
+    valid_levels = {"default", "seguridad", "solo_personalidad", "personalizado"}
+    norm_level = level.lower().strip()
+    if norm_level not in valid_levels:
+        return False
+
+    settings.minds[key].tolerance_level = norm_level
+    if custom_text is not None:
+        settings.minds[key].custom_tolerance_prompt = custom_text
+
+    # Guardar permanentemente en archivo YAML correspondiente
+    yaml_file = settings.minds_dir / f"{key.lower()}.yaml"
+    if yaml_file.exists():
+        with open(yaml_file, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        data["tolerance_level"] = norm_level
+        if custom_text is not None:
+            data["custom_tolerance_prompt"] = custom_text
+        with open(yaml_file, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, allow_unicode=True)
+
+    return True
+
+
 def load_settings() -> Settings:
     settings = Settings()
 
@@ -226,6 +306,14 @@ def load_settings() -> Settings:
                 settings.allowed_user_ids = {
                     int(x) for x in security_cfg["allowed_user_ids"] if str(x).isdigit()
                 }
+
+            web_cfg = cfg.get("web", {})
+            if "host" in web_cfg:
+                settings.web_host = str(web_cfg["host"])
+            if "port" in web_cfg:
+                settings.web_port = int(web_cfg["port"])
+            if "enabled" in web_cfg:
+                settings.web_enabled = bool(web_cfg["enabled"])
 
     # Cargar risk tiers
     if settings.risk_tiers_file.exists():

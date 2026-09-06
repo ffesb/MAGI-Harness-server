@@ -2,7 +2,7 @@ import asyncio
 import json
 import time
 from typing import Any, Dict, List, Optional
-from magi.core.config import Settings
+from magi.core.config import Settings, get_effective_system_prompt
 from magi.core.provider import OpenRouterClient
 from magi.council.voter import MagiVote, MindVerdict
 from magi.executor.tools.base import BaseTool, ToolResult
@@ -45,7 +45,11 @@ class MindWorker:
 
         model = mind_cfg.model if mind_cfg else "anthropic/claude-3.5-sonnet"
         temp = mind_cfg.temperature if mind_cfg else 0.1
-        sys_prompt = mind_cfg.system_prompt if mind_cfg else f"Eres {self.mind_name} de MAGI."
+        sys_prompt = (
+            get_effective_system_prompt(mind_cfg)
+            if mind_cfg
+            else f"Eres {self.mind_name} de MAGI."
+        )
 
         audit_prompt = (
             f"PROPUESTA A AUDITAR Y VOTAR:\n"

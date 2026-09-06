@@ -21,6 +21,7 @@ from magi.core.config import (
     Settings,
     update_mind_model,
     update_mind_system_prompt,
+    update_mind_tolerance,
     update_openrouter_api_key,
 )
 from magi.core.audit import AuditLogger
@@ -162,10 +163,17 @@ class TelegramAdapter(ChannelAdapter):
         self.app.add_handler(CommandHandler("auditoria", self._cmd_audit))
         self.app.add_handler(CommandHandler("rescan", self._cmd_rescan))
         self.app.add_handler(CommandHandler("provider", self._cmd_provider))
+        self.app.add_handler(CommandHandler("model", self._cmd_model))
         self.app.add_handler(CommandHandler("model_executor", self._cmd_model_executor))
         self.app.add_handler(CommandHandler("model_melchior", self._cmd_model_melchior))
         self.app.add_handler(CommandHandler("model_balthasar", self._cmd_model_balthasar))
         self.app.add_handler(CommandHandler("model_casper", self._cmd_model_casper))
+        self.app.add_handler(CommandHandler("tolerance", self._cmd_tolerance))
+        self.app.add_handler(CommandHandler("tolerancia", self._cmd_tolerance))
+        self.app.add_handler(CommandHandler("tolerance_melchior", self._cmd_tolerance_melchior))
+        self.app.add_handler(CommandHandler("tolerance_balthasar", self._cmd_tolerance_balthasar))
+        self.app.add_handler(CommandHandler("tolerance_casper", self._cmd_tolerance_casper))
+        self.app.add_handler(CommandHandler("tolerance_executor", self._cmd_tolerance_executor))
         self.app.add_handler(CommandHandler("personality_melchior", self._cmd_personality_melchior))
         self.app.add_handler(CommandHandler("personality_balthasar", self._cmd_personality_balthasar))
         self.app.add_handler(CommandHandler("personality_casper", self._cmd_personality_casper))
@@ -334,11 +342,19 @@ class TelegramAdapter(ChannelAdapter):
             "• Send `CONFIRMO` — Human authorization for pending Tier 2 & 3 critical actions\n\n"
             "🔹 *AI Provider & Models*\n"
             "• `/provider [key]` — Configure or verify OpenRouter API Key\n"
+            "• `/model <mind> [model]` — Set or choose model for any mind\n"
             "• `/model_executor [model]` — Set model for AI Executor\n"
             "• `/model_melchior [model]` — Set model for MELCHIOR-1 (Scientist)\n"
             "• `/model_balthasar [model]` — Set model for BALTHASAR-2 (Mother)\n"
             "• `/model_casper [model]` — Set model for CASPER-3 (Woman)\n"
             "  _(Aliases `/model-executor`, `/model-melchior`, `/model-balthasar`, `/model-casper` supported)_\n\n"
+            "🔹 *Tolerance Levels (Deliberation Strictness)*\n"
+            "• `/tolerance <mind> <level>` — Set tolerance (default | seguridad | solo_personalidad | personalizado)\n"
+            "• `/tolerance_melchior <level>` — Set tolerance for MELCHIOR-1\n"
+            "• `/tolerance_balthasar <level>` — Set tolerance for BALTHASAR-2\n"
+            "• `/tolerance_casper <level>` — Set tolerance for CASPER-3\n"
+            "• `/tolerance_executor <level>` — Set tolerance for AI Executor\n"
+            "  _(Aliases `/tolerancia` and hyphenated versions supported)_\n\n"
             "🔹 *Mind Personalities & Priorities*\n"
             "• `/personality_melchior` — Set permanent system prompt for MELCHIOR-1\n"
             "• `/personality_balthasar` — Set permanent system prompt for BALTHASAR-2\n"
@@ -682,6 +698,165 @@ class TelegramAdapter(ChannelAdapter):
         arg = context.args[0].strip() if context.args else None
         await self._prompt_model_selection(chat_id, "CASPER", arg)
 
+    async def _cmd_model(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        chat_id = update.effective_chat.id
+        if not context.args:
+            buttons = [
+                [
+                    InlineButton(text="MELCHIOR-1", callback_data="mdl_ask:MELCHIOR"),
+                    InlineButton(text="BALTHASAR-2", callback_data="mdl_ask:BALTHASAR"),
+                ],
+                [
+                    InlineButton(text="CASPER-3", callback_data="mdl_ask:CASPER"),
+                    InlineButton(text="EXECUTOR", callback_data="mdl_ask:EXECUTOR"),
+                ],
+            ]
+            await self.send_message(
+                chat_id,
+                "🧠 *SELECCIÓN DE MODELOS MAGI*\nElige la mente que deseas configurar:",
+                buttons=buttons,
+            )
+            return
+
+        mind_key = context.args[0].upper().replace("-", "_").replace("MODEL_", "")
+        model_arg = context.args[1].strip() if len(context.args) > 1 else None
+        await self._prompt_model_selection(chat_id, mind_key, model_arg)
+
+    async def _prompt_tolerance_selection(
+        self,
+        chat_id: int,
+        mind_key: str,
+        level: Optional[str] = None,
+        custom_text: Optional[str] = None,
+    ) -> None:
+        mind_key = mind_key.upper().strip()
+        if mind_key not in self.settings.minds:
+            await self.send_message(chat_id, f"❌ Mente '{mind_key}' no reconocida (válidas: MELCHIOR, BALTHASAR, CASPER, EXECUTOR).")
+            return
+
+        if level:
+            norm_level = level.lower().strip()
+            valid_levels = {"default", "seguridad", "solo_personalidad", "personalizado"}
+            if norm_level not in valid_levels:
+                await self.send_message(
+                    chat_id,
+                    f"❌ Nivel inválido: `{level}`. Opciones: `default`, `seguridad`, `solo_personalidad`, `personalizado`.",
+                )
+                return
+
+            success = update_mind_tolerance(self.settings, mind_key, norm_level, custom_text)
+            if success:
+                display_name = self.settings.minds[mind_key].display_name
+                custom_info = f"\n• *Criterio Custom:* {custom_text}" if custom_text else ""
+                await self.send_message(
+                    chat_id,
+                    f"✅ *NIVEL DE TOLERANCIA ACTUALIZADO*\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"• *Mente:* {display_name} (`{mind_key}`)\n"
+                    f"• *Nivel:* `{norm_level.upper()}`{custom_info}\n"
+                    f"Configuración guardada en `config/minds/{mind_key.lower()}.yaml`."
+                )
+                await self.audit.log_event(
+                    actor=f"user:{chat_id}",
+                    action="MIND_TOLERANCE_UPDATED",
+                    tier=1,
+                    detail={"mind": mind_key, "level": norm_level},
+                )
+                if self.ipc:
+                    try:
+                        await self.ipc.broadcast_event(
+                            "mind_tolerance_sync",
+                            {"mind": mind_key, "level": norm_level},
+                        )
+                    except Exception:
+                        pass
+            else:
+                await self.send_message(chat_id, f"❌ Error al guardar tolerancia para `{mind_key}`.")
+            return
+
+        current_level = self.settings.minds[mind_key].tolerance_level
+        display_name = self.settings.minds[mind_key].display_name
+
+        text = (
+            f"⚖️ *CRITERIO DE TOLERANCIA: {display_name}*\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"• *Nivel Actual:* `{current_level.upper()}`\n\n"
+            "Elige el nivel de tolerancia para la deliberación y voto de esta mente:\n\n"
+            "• *Default:* Balance entre personalidad, niveles de riesgo y proporcionalidad.\n"
+            "• *Seguridad:* Tolerancia cero ante riesgo de rotura o borrado.\n"
+            "• *Solo Personalidad:* Se guía únicamente por su system prompt.\n"
+            "• *Personalizado:* Criterio a medida definido por el operador."
+        )
+
+        buttons = [
+            [
+                InlineButton(text="🟢 Default", callback_data=f"tol_set:{mind_key}:default"),
+                InlineButton(text="🛡️ Seguridad", callback_data=f"tol_set:{mind_key}:seguridad"),
+            ],
+            [
+                InlineButton(text="🎭 Solo Personalidad", callback_data=f"tol_set:{mind_key}:solo_personalidad"),
+                InlineButton(text="⚙️ Personalizado", callback_data=f"tol_set:{mind_key}:personalizado"),
+            ],
+        ]
+        await self.send_message(chat_id, text, buttons=buttons)
+
+    async def _cmd_tolerance(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        chat_id = update.effective_chat.id
+        if not context.args:
+            buttons = [
+                [
+                    InlineButton(text="MELCHIOR-1", callback_data="tol_ask:MELCHIOR"),
+                    InlineButton(text="BALTHASAR-2", callback_data="tol_ask:BALTHASAR"),
+                ],
+                [
+                    InlineButton(text="CASPER-3", callback_data="tol_ask:CASPER"),
+                    InlineButton(text="EXECUTOR", callback_data="tol_ask:EXECUTOR"),
+                ],
+            ]
+            await self.send_message(
+                chat_id,
+                "⚖️ *AJUSTE DE TOLERANCIA MAGI*\nSelecciona la mente a configurar:",
+                buttons=buttons,
+            )
+            return
+
+        mind_key = context.args[0].upper().replace("-", "_").replace("TOLERANCE_", "")
+        level = context.args[1].strip() if len(context.args) > 1 else None
+        custom_text = " ".join(context.args[2:]).strip() if len(context.args) > 2 else None
+        await self._prompt_tolerance_selection(chat_id, mind_key, level, custom_text)
+
+    async def _cmd_tolerance_melchior(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        level = context.args[0].strip() if context.args else None
+        custom = " ".join(context.args[1:]).strip() if len(context.args) > 1 else None
+        await self._prompt_tolerance_selection(update.effective_chat.id, "MELCHIOR", level, custom)
+
+    async def _cmd_tolerance_balthasar(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        level = context.args[0].strip() if context.args else None
+        custom = " ".join(context.args[1:]).strip() if len(context.args) > 1 else None
+        await self._prompt_tolerance_selection(update.effective_chat.id, "BALTHASAR", level, custom)
+
+    async def _cmd_tolerance_casper(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        level = context.args[0].strip() if context.args else None
+        custom = " ".join(context.args[1:]).strip() if len(context.args) > 1 else None
+        await self._prompt_tolerance_selection(update.effective_chat.id, "CASPER", level, custom)
+
+    async def _cmd_tolerance_executor(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._check_security(update):
+            return
+        level = context.args[0].strip() if context.args else None
+        custom = " ".join(context.args[1:]).strip() if len(context.args) > 1 else None
+        await self._prompt_tolerance_selection(update.effective_chat.id, "EXECUTOR", level, custom)
+
     # --- PERSONALIDAD Y SYSTEM PROMPTS DE MENTES ---
 
     async def _cmd_personality_melchior(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1013,6 +1188,42 @@ class TelegramAdapter(ChannelAdapter):
             else:
                 await query.edit_message_text("❌ Error al actualizar configuración de modelo.")
 
+        elif data.startswith("mdl_ask:"):
+            mind_key = data.split(":", 1)[1]
+            await self._prompt_model_selection(chat_id, mind_key)
+
+        elif data.startswith("tol_ask:"):
+            mind_key = data.split(":", 1)[1]
+            await self._prompt_tolerance_selection(chat_id, mind_key)
+
+        elif data.startswith("tol_set:"):
+            _, mind_key, level = data.split(":", 2)
+            success = update_mind_tolerance(self.settings, mind_key, level)
+            if success:
+                display_name = self.settings.minds[mind_key].display_name
+                await query.edit_message_text(
+                    f"✅ *{display_name}* configurado con tolerancia: `{level.upper()}`",
+                    parse_mode="Markdown",
+                )
+                await self.audit.log_event(
+                    actor=f"user:{chat_id}",
+                    action="MIND_TOLERANCE_UPDATED",
+                    tier=1,
+                    detail={"mind": mind_key, "level": level},
+                )
+                if self.ipc:
+                    try:
+                        asyncio.create_task(
+                            self.ipc.broadcast_event(
+                                "mind_tolerance_sync",
+                                {"mind": mind_key, "level": level},
+                            )
+                        )
+                    except Exception:
+                        pass
+            else:
+                await query.edit_message_text("❌ Error al actualizar nivel de tolerancia.")
+
         elif data.startswith("cron_del:"):
             job_id = data.split(":", 1)[1]
             if self.scheduler:
@@ -1159,6 +1370,21 @@ class TelegramAdapter(ChannelAdapter):
             arg = parts[1] if len(parts) > 1 else None
             mind_name = cmd.replace("model_", "").upper()
             await self._prompt_model_selection(chat_id, mind_name, arg)
+            return
+
+        # Soporte para alias de tolerancia (/tolerance-melchior, /tolerancia_casper, etc.)
+        if (
+            user_text.startswith("/tolerance-")
+            or user_text.startswith("/tolerance_")
+            or user_text.startswith("/tolerancia-")
+            or user_text.startswith("/tolerancia_")
+        ):
+            parts = user_text.split()
+            cmd = parts[0][1:].replace("-", "_")
+            mind_name = cmd.replace("tolerancia_", "").replace("tolerance_", "").upper()
+            lvl = parts[1] if len(parts) > 1 else None
+            custom = " ".join(parts[2:]).strip() if len(parts) > 2 else None
+            await self._prompt_tolerance_selection(chat_id, mind_name, lvl, custom)
             return
 
         session = await self.session_manager.get_or_create_active_session(chat_id)

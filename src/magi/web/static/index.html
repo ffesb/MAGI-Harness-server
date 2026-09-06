@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAGI HARNESS // NERV TACTICAL CONSOLE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #050508;
+      --bg-panel: #0b0b12;
+      --bg-card: #12121e;
+      --bg-input: #181828;
+      --border-dark: #202035;
+      --border-amber: #ff7700;
+      --border-glow: rgba(255, 119, 0, 0.4);
+      --nerv-orange: #ff5500;
+      --nerv-amber: #ff9900;
+      --nerv-cyan: #00c0f0;
+      --nerv-green: #00e676;
+      --nerv-red: #ff1744;
+      --nerv-purple: #9d4edd;
+      --text-main: #f0f0f5;
+      --text-muted: #8c8ca5;
+      --text-dim: #54546e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Space Grotesk', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-void); }
+    ::-webkit-scrollbar-thumb { background: #25253d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-amber); }
+
+    /* Top Bar HUD */
+    header {
+      background: #080502;
+      border-bottom: 2px solid var(--nerv-orange);
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(255, 85, 0, 0.15);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: var(--nerv-orange);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: #000;
+      animation: pulseHex 2.5s infinite;
+    }
+    @keyframes pulseHex {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(0.96); filter: drop-shadow(0 0 8px var(--nerv-orange)); }
+    }
+    .brand-text h1 {
+      font-size: 15px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: var(--nerv-amber);
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .brand-text span {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    /* Telemetry Pills */
+    .telemetry-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 4px 12px;
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+    }
+    .telem-item { display: flex; align-items: center; gap: 5px; }
+    .telem-label { color: var(--nerv-amber); font-weight: 600; }
+    .telem-val { color: var(--nerv-green); }
+
+    /* MAGI Minds HUD Mini */
+    .magi-hud-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mind-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border-dark);
+      transition: all 0.2s ease;
+      background: var(--bg-card);
+      color: var(--nerv-cyan);
+    }
+    .mind-pill:hover {
+      border-color: var(--border-amber);
+      transform: translateY(-1px);
+    }
+    .mind-pill.state-default { border-color: var(--nerv-cyan); color: #fff; background: rgba(0, 192, 240, 0.15); }
+    .mind-pill.state-deliberating { border-color: var(--nerv-amber); color: #000; background: var(--nerv-amber); animation: blink 1s infinite; }
+    .mind-pill.state-approve { border-color: var(--nerv-green); color: #000; background: var(--nerv-green); }
+    .mind-pill.state-reject { border-color: var(--nerv-red); color: #fff; background: var(--nerv-red); }
+    .mind-tol-tag { font-size: 9px; opacity: 0.8; padding: 1px 4px; background: rgba(0,0,0,0.4); border-radius: 3px; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    /* Advanced Config Checkbox */
+    .adv-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 4px 10px;
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+    }
+    .adv-toggle-wrap input[type="checkbox"] {
+      accent-color: var(--nerv-orange);
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .app-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+    }
+
+    /* Sidebar (Hermes style) */
+    aside {
+      width: 260px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-dark);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .nav-actions {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .btn-new-op {
+      width: 100%;
+      background: linear-gradient(135deg, var(--nerv-orange), #b83200);
+      color: #fff;
+      border: none;
+      padding: 9px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 10px rgba(255, 85, 0, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-new-op:hover {
+      background: linear-gradient(135deg, #ff6a1f, #cf3800);
+      box-shadow: 0 4px 16px rgba(255, 85, 0, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .nav-links {
+      list-style: none;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-link:hover {
+      color: var(--text-main);
+      background: var(--bg-card);
+    }
+    .nav-link.active {
+      color: var(--nerv-amber);
+      background: rgba(255, 153, 0, 0.1);
+      border-left: 3px solid var(--nerv-amber);
+      font-weight: 600;
+    }
+    .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .sessions-sidebar-header {
+      padding: 12px 14px 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sessions-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 5px;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+    .session-item:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+    .session-item.active {
+      background: rgba(0, 192, 240, 0.1);
+      border-color: rgba(0, 192, 240, 0.3);
+      color: var(--nerv-cyan);
+      font-weight: 600;
+    }
+    .session-title-wrap {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-del-sess {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .session-item:hover .btn-del-sess { opacity: 1; }
+    .btn-del-sess:hover { color: var(--nerv-red); background: rgba(255,23,68,0.15); }
+
+    /* Content Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-void);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Views */
+    .view-container {
+      display: none;
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .view-container.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Chat / Operations View */
+    #view-chat {
+      padding: 0;
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+    #view-chat.active { display: flex; }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 12px;
+      max-width: 880px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .message-row.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .message-row.assistant {
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .message-row.user .msg-avatar {
+      background: var(--nerv-purple);
+      color: #fff;
+    }
+    .message-row.assistant .msg-avatar {
+      background: var(--nerv-orange);
+      color: #000;
+    }
+
+    .msg-bubble {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .message-row.user .msg-bubble {
+      background: #141424;
+      border-color: #2b2b4a;
+      color: #ffffff;
+    }
+    .message-row.assistant .msg-bubble {
+      background: var(--bg-card);
+      border-color: var(--border-dark);
+      width: 100%;
+    }
+
+    /* Markdown styling inside bubbles */
+    .msg-bubble pre {
+      background: #08080f;
+      border: 1px solid var(--border-dark);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      color: #79ffe1;
+    }
+    .msg-bubble code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: var(--nerv-amber);
+    }
+    .msg-bubble p { margin-bottom: 8px; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble ul, .msg-bubble ol { margin-left: 20px; margin-bottom: 8px; }
+
+    /* Tool Call Card */
+    .tool-card {
+      margin-top: 10px;
+      background: #0a0a14;
+      border: 1px solid var(--border-dark);
+      border-left: 3px solid var(--nerv-amber);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .tool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--nerv-amber);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .tool-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255, 119, 0, 0.15);
+      border: 1px solid var(--border-amber);
+      color: var(--nerv-orange);
+    }
+
+    /* Confirmation Banner (Tier 2/3) */
+    .confirm-card {
+      margin-top: 12px;
+      background: rgba(255, 23, 68, 0.08);
+      border: 1px solid var(--nerv-red);
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+    }
+    .confirm-card h4 {
+      color: var(--nerv-red);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .confirm-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .btn-confirm-act {
+      background: var(--nerv-red);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+    .btn-confirm-act:hover { background: #d5002a; }
+    .btn-cancel-act {
+      background: transparent;
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+    .btn-cancel-act:hover { color: #fff; border-color: #fff; }
+
+    /* Chat Input Area (Hermes Style) */
+    .chat-input-area {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-dark);
+      padding: 14px 24px;
+      position: relative;
+    }
+
+    .quick-chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      border-color: var(--border-amber);
+      color: var(--nerv-amber);
+    }
+
+    .input-box-wrapper {
+      position: relative;
+      display: flex;
+      background: var(--bg-input);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 6px 12px;
+      transition: border-color 0.2s ease;
+    }
+    .input-box-wrapper:focus-within {
+      border-color: var(--nerv-orange);
+      box-shadow: 0 0 10px rgba(255, 85, 0, 0.2);
+    }
+
+    .chat-textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      resize: none;
+      min-height: 28px;
+      max-height: 140px;
+      line-height: 1.5;
+    }
+
+    .btn-send {
+      background: var(--nerv-orange);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      align-self: flex-end;
+      transition: all 0.15s ease;
+    }
+    .btn-send:hover { background: var(--nerv-amber); transform: scale(1.05); }
+
+    /* Autocomplete Popover (Hermes style) */
+    .autocomplete-popover {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 24px;
+      right: 24px;
+      max-height: 250px;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--nerv-orange);
+      border-radius: 8px;
+      box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.7);
+      display: none;
+      z-index: 100;
+      font-family: var(--font-mono);
+    }
+    .autocomplete-popover.visible { display: block; }
+    .autocomplete-item {
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover, .autocomplete-item.selected {
+      background: rgba(255, 119, 0, 0.15);
+    }
+    .ac-cmd {
+      color: var(--nerv-amber);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ac-args { color: var(--text-dim); font-size: 11px; font-weight: normal; }
+    .ac-desc { color: var(--text-muted); font-size: 11px; }
+    .ac-cat {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0, 192, 240, 0.1);
+      color: var(--nerv-cyan);
+    }
+
+    /* Minds Configuration View */
+    .minds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .mind-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.2s ease;
+      position: relative;
+    }
+    .mind-card:hover { border-color: rgba(255, 119, 0, 0.4); }
+    .mind-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 10px;
+    }
+    .mind-title {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--nerv-cyan);
+    }
+    .mind-tol-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255, 119, 0, 0.12);
+      border: 1px solid var(--border-amber);
+      color: var(--nerv-amber);
+      text-transform: uppercase;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-control, .form-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      padding: 8px 10px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--nerv-orange);
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.4;
+    }
+
+    /* Tolerance Section in Mind Card */
+    .tolerance-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tolerance-preview-box {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: #08080f;
+      border: 1px dashed #30304a;
+      border-radius: 4px;
+      padding: 8px;
+      line-height: 1.4;
+      display: none;
+    }
+    .tolerance-preview-box.visible { display: block; }
+    .tolerance-preview-box h5 {
+      color: var(--nerv-amber);
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+
+    .btn-save-mind {
+      background: var(--border-dark);
+      color: var(--text-main);
+      border: 1px solid var(--border-dark);
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-save-mind:hover {
+      background: var(--nerv-orange);
+      color: #000;
+      border-color: var(--nerv-orange);
+    }
+
+    /* Generic Tables (Cronjobs, Sessions, Audit) */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .panel-header h2 {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--nerv-amber);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .data-table-wrap {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .data-table th {
+      background: #0e0e18;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-status.active { background: rgba(0, 230, 118, 0.15); color: var(--nerv-green); }
+    .badge-status.pending { background: rgba(255, 170, 0, 0.15); color: var(--nerv-amber); }
+
+    .btn-tbl {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-tbl:hover { color: #fff; border-color: var(--nerv-orange); }
+    .btn-tbl.danger:hover { color: #fff; background: var(--nerv-red); border-color: var(--nerv-red); }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-backdrop.visible { display: flex; }
+    .modal-dialog {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-amber);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 119, 0, 0.2);
+      overflow: hidden;
+      animation: zoomIn 0.15s ease;
+    }
+    @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal-header {
+      background: #0d0905;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--nerv-amber);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .btn-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-modal-close:hover { color: #fff; }
+    .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border-dark);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #08080f;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 300;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border-amber);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar HUD -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">666</div>
+      <div class="brand-text">
+        <h1>MAGI HARNESS</h1>
+        <span>NERV CENTRAL TACTICAL MONITOR</span>
+      </div>
+    </div>
+
+    <!-- Live Telemetry -->
+    <div class="telemetry-bar">
+      <div class="telem-item">
+        <span class="telem-label">CPU:</span>
+        <span class="telem-val" id="telem-cpu">0.0%</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label">RAM:</span>
+        <span class="telem-val" id="telem-ram">0.0%</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label">UPTIME:</span>
+        <span class="telem-val" id="telem-uptime">--</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label">OP_ID:</span>
+        <span class="telem-val" id="telem-sess" style="color:var(--nerv-cyan)">--</span>
+      </div>
+    </div>
+
+    <!-- Mini MAGI Pods -->
+    <div class="magi-hud-mini">
+      <div class="mind-pill state-default" id="hud-balthasar" onclick="switchNav('minds'); focusMind('BALTHASAR');">
+        <span>BALTHASAR-2</span>
+        <span class="mind-tol-tag" id="hud-tol-balthasar">DEF</span>
+      </div>
+      <div class="mind-pill state-default" id="hud-melchior" onclick="switchNav('minds'); focusMind('MELCHIOR');">
+        <span>MELCHIOR-1</span>
+        <span class="mind-tol-tag" id="hud-tol-melchior">DEF</span>
+      </div>
+      <div class="mind-pill state-default" id="hud-casper" onclick="switchNav('minds'); focusMind('CASPER');">
+        <span>CASPER-3</span>
+        <span class="mind-tol-tag" id="hud-tol-casper">DEF</span>
+      </div>
+    </div>
+
+    <!-- Advanced Settings Toggle -->
+    <div class="adv-toggle-wrap" title="Habilita modos de tolerancia 'Solo Personalidad' y 'Personalizado', y muestra el texto final inyectado">
+      <input type="checkbox" id="chk-advanced" onchange="toggleAdvancedMode(this.checked)">
+      <label for="chk-advanced">Configuración Avanzada</label>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="app-body">
+    <!-- Sidebar -->
+    <aside>
+      <div class="nav-actions">
+        <button class="btn-new-op" onclick="openNewSessionModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Nueva Operación
+        </button>
+      </div>
+
+      <ul class="nav-links">
+        <li class="nav-link active" data-view="chat" onclick="switchNav('chat')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Operaciones (Chat)
+        </li>
+        <li class="nav-link" data-view="minds" onclick="switchNav('minds')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 0-7.07 17.07L12 22l7.07-2.93A10 10 0 0 0 12 2z"></path></svg>
+          Mentes MAGI
+        </li>
+        <li class="nav-link" data-view="cronjobs" onclick="switchNav('cronjobs')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Tareas (Cronjobs)
+        </li>
+        <li class="nav-link" data-view="sessions" onclick="switchNav('sessions')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          Sesiones Pasadas
+        </li>
+        <li class="nav-link" data-view="provider" onclick="switchNav('provider')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+          Proveedor LLM
+        </li>
+        <li class="nav-link" data-view="audit" onclick="switchNav('audit')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Auditoría
+        </li>
+      </ul>
+
+      <div class="sessions-sidebar-header">
+        <span>Historial de Sesiones</span>
+      </div>
+      <div class="sessions-scroll" id="sidebar-sessions-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+      <!-- View 1: Chat / Operations -->
+      <div class="view-container active" id="view-chat">
+        <div class="chat-messages" id="chat-messages">
+          <!-- Dynamic conversation messages -->
+        </div>
+
+        <div class="chat-input-area">
+          <!-- Autocomplete Popover -->
+          <div class="autocomplete-popover" id="ac-popover"></div>
+
+          <!-- Quick chips -->
+          <div class="quick-chips">
+            <span class="chip" onclick="insertCommand('/status')">/status</span>
+            <span class="chip" onclick="insertCommand('/cronjobs')">/cronjobs</span>
+            <span class="chip" onclick="insertCommand('/tolerance')">/tolerance</span>
+            <span class="chip" onclick="insertCommand('/model')">/model</span>
+            <span class="chip" onclick="insertCommand('/new')">/new</span>
+            <span class="chip" onclick="insertCommand('/help')">/help</span>
+          </div>
+
+          <div class="input-box-wrapper">
+            <textarea
+              class="chat-textarea"
+              id="chat-input"
+              rows="1"
+              placeholder="Instruye a la Ejecutora o escribe '/' para comandos..."
+              onkeydown="handleChatKeyDown(event)"
+              oninput="handleChatInput(event)"
+            ></textarea>
+            <button class="btn-send" onclick="sendChatMessage()" title="Enviar comando">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 2: Minds & Tolerance Configuration -->
+      <div class="view-container" id="view-minds">
+        <div class="panel-header">
+          <h2>Mentes de Supercómputo MAGI</h2>
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">Configuración de modelos, personalidades y criterios de tolerancia</span>
+        </div>
+        <div class="minds-grid" id="minds-grid">
+          <!-- Rendered dynamically for Melchior, Balthasar, Casper, Executor -->
+        </div>
+      </div>
+
+      <!-- View 3: Cronjobs -->
+      <div class="view-container" id="view-cronjobs">
+        <div class="panel-header">
+          <h2>Tareas Autónomas Programadas (Cronjobs)</h2>
+          <button class="btn-new-op" style="width:auto;" onclick="openNewCronjobModal()">+ Nueva Tarea</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Expresión Cron</th>
+                <th>Instrucción / Prompt</th>
+                <th>Próxima Ejecución</th>
+                <th>Última Ejecución</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cronjobs-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View 4: Past Sessions -->
+      <div class="view-container" id="view-sessions">
+        <div class="panel-header">
+          <h2>Registro de Sesiones de Trabajo</h2>
+          <button class="btn-new-op" style="width:auto;" onclick="openNewSessionModal()">+ Nueva Sesión</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Creación</th>
+                <th>Última Actividad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View 5: LLM Provider -->
+      <div class="view-container" id="view-provider">
+        <div class="panel-header">
+          <h2>Configuración del Proveedor LLM</h2>
+        </div>
+        <div style="max-width:620px; background:var(--bg-panel); border:1px solid var(--border-dark); border-radius:8px; padding:24px; display:flex; flex-direction:column; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Proveedor Central</label>
+            <input type="text" class="form-control" value="OpenRouter AI (openrouter.ai)" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Endpoint Base</label>
+            <input type="text" class="form-control" id="provider-base-url" value="https://openrouter.ai/api/v1" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clave de API Actual</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" class="form-control" id="provider-key-display" value="••••••••" readonly>
+              <button class="btn-tbl" onclick="promptNewApiKey()">Modificar Clave</button>
+            </div>
+            <span style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);">
+              La clave se almacena permanentemente en <code style="color:var(--nerv-amber)">config/magi.env</code> con permisos 0600.
+            </span>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:10px;">
+            <button class="btn-new-op" style="width:auto;" onclick="testProviderConnection()">Probar Conexión</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 6: Audit Trail -->
+      <div class="view-container" id="view-audit">
+        <div class="panel-header">
+          <h2>Registro de Auditoría de Seguridad y Decisiones</h2>
+          <button class="btn-tbl" onclick="loadAuditLogs()">Refrescar</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Actor</th>
+                <th>Acción</th>
+                <th>Tier</th>
+                <th>Detalle</th>
+                <th>Fecha / Hora</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Nueva Sesión -->
+  <div class="modal-backdrop" id="modal-new-session">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Inicializar Nueva Operación</h3>
+        <button class="btn-modal-close" onclick="closeModal('modal-new-session')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Título de la Sesión</label>
+          <input type="text" class="form-control" id="new-session-title" placeholder="Ej. Diagnóstico de NGINX y Docker">
+        </div>
+        <p style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);">
+          Al crear una sesión nueva, se congelan los prompts y modelos de todas las mentes en la base de datos para preservar la trazabilidad forense.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-tbl" onclick="closeModal('modal-new-session')">Cancelar</button>
+        <button class="btn-new-op" style="width:auto;" onclick="confirmCreateSession()">Inicializar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Cronjob -->
+  <div class="modal-backdrop" id="modal-new-cronjob">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Programar Tarea Periódica</h3>
+        <button class="btn-modal-close" onclick="closeModal('modal-new-cronjob')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Expresión Cron (5 campos)</label>
+          <input type="text" class="form-control" id="new-cron-expr" placeholder="Ej. 0 9 * * * (todos los días a las 09:00)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instrucción / Prompt para la Ejecutora</label>
+          <textarea class="form-control" id="new-cron-prompt" placeholder="Ej. Chequear uso de disco y alertar si alguna partición supera el 85%"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-tbl" onclick="closeModal('modal-new-cronjob')">Cancelar</button>
+        <button class="btn-new-op" style="width:auto;" onclick="confirmCreateCronjob()">Crear Tarea</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    let activeSessionId = null;
+    let availableCommands = [];
+    let isAdvancedMode = false;
+    let mindsData = [];
+    let ws = null;
+    let acSelectedIndex = 0;
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadCommands();
+      await loadSystemStatus();
+      await loadSessions();
+      await loadMinds();
+      setupWebSocket();
+    });
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => { t.remove(); }, 3500);
+    }
+
+    // --- WEBSOCKET CONNECTION ---
+    function setupWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          handleLiveEvent(payload.type, payload.data);
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        setTimeout(setupWebSocket, 3000);
+      };
+    }
+
+    function handleLiveEvent(type, data) {
+      if (type === 'telemetry_live' || type === 'telemetry') {
+        if (data.cpu !== undefined) document.getElementById('telem-cpu').textContent = `${data.cpu.toFixed(1)}%`;
+        if (data.ram !== undefined) document.getElementById('telem-ram').textContent = `${data.ram.toFixed(1)}%`;
+        if (data.uptime !== undefined) document.getElementById('telem-uptime').textContent = data.uptime;
+        if (data.session_id !== undefined && data.session_id !== '--') {
+          document.getElementById('telem-sess').textContent = data.session_id;
+        }
+      } else if (type === 'mind_state') {
+        const mind = data.mind ? data.mind.toUpperCase() : '';
+        const state = (data.state || 'DEFAULT').toUpperCase();
+        const pill = document.getElementById(`hud-${mind.toLowerCase()}`);
+        if (pill) {
+          pill.className = `mind-pill state-${state.toLowerCase()}`;
+        }
+      } else if (type === 'mind_tolerance_sync') {
+        const mind = data.mind ? data.mind.toUpperCase() : '';
+        const level = data.level ? data.level.substring(0, 4).toUpperCase() : 'DEF';
+        const tag = document.getElementById(`hud-tol-${mind.toLowerCase()}`);
+        if (tag) tag.textContent = level;
+      } else if (type === 'session_new') {
+        if (data.session_id) {
+          activeSessionId = data.session_id;
+          document.getElementById('telem-sess').textContent = activeSessionId;
+          loadSessions();
+          loadSessionMessages(activeSessionId);
+        }
+      }
+    }
+
+    // --- NAVIGATION ---
+    function switchNav(viewName) {
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-view') === viewName);
+      });
+      document.querySelectorAll('.view-container').forEach(c => {
+        c.classList.toggle('active', c.id === `view-${viewName}`);
+      });
+
+      if (viewName === 'cronjobs') loadCronjobs();
+      if (viewName === 'sessions') loadSessions();
+      if (viewName === 'provider') loadProviderConfig();
+      if (viewName === 'audit') loadAuditLogs();
+      if (viewName === 'minds') loadMinds();
+    }
+
+    function toggleAdvancedMode(checked) {
+      isAdvancedMode = checked;
+      renderMinds();
+      showToast(checked ? "Modo Configuración Avanzada: ACTIVADO" : "Modo Configuración Avanzada: DESACTIVADO");
+    }
+
+    // --- SYSTEM & COMMANDS ---
+    async function loadCommands() {
+      try {
+        const res = await fetch('/api/commands');
+        availableCommands = await res.json();
+      } catch (e) {}
+    }
+
+    async function loadSystemStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('telem-cpu').textContent = `${data.cpu_percent.toFixed(1)}%`;
+        document.getElementById('telem-ram').textContent = `${data.ram_percent.toFixed(1)}%`;
+        document.getElementById('telem-uptime').textContent = data.uptime;
+        if (data.active_session) {
+          activeSessionId = data.active_session.id;
+          document.getElementById('telem-sess').textContent = activeSessionId;
+          await loadSessionMessages(activeSessionId);
+        }
+      } catch (e) {}
+    }
+
+    // --- SESSIONS ---
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/sessions');
+        const sessions = await res.json();
+        renderSessions(sessions);
+      } catch (e) {}
+    }
+
+    function renderSessions(sessions) {
+      // Sidebar list
+      const sidebarList = document.getElementById('sidebar-sessions-list');
+      sidebarList.innerHTML = '';
+      sessions.slice(0, 15).forEach(s => {
+        const el = document.createElement('div');
+        el.className = `session-item ${s.id === activeSessionId ? 'active' : ''}`;
+        el.innerHTML = `
+          <div class="session-title-wrap" onclick="switchSession('${s.id}')">
+            <span>●</span>
+            <span title="${s.title}">${s.title}</span>
+          </div>
+          <button class="btn-del-sess" onclick="deleteSession(event, '${s.id}')" title="Eliminar sesión">&times;</button>
+        `;
+        sidebarList.appendChild(el);
+      });
+
+      // Table in Sessions view
+      const tbody = document.getElementById('sessions-table-body');
+      tbody.innerHTML = '';
+      sessions.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><code>${s.id}</code></td>
+          <td><strong>${s.title}</strong></td>
+          <td><span class="badge-status ${s.is_active ? 'active' : 'pending'}">${s.is_active ? 'ACTIVA' : 'INACTIVA'}</span></td>
+          <td>${s.created_at ? s.created_at.substring(0, 19).replace('T', ' ') : '--'}</td>
+          <td>${s.updated_at ? s.updated_at.substring(0, 19).replace('T', ' ') : '--'}</td>
+          <td>
+            <button class="btn-tbl" onclick="switchSession('${s.id}')">Activar</button>
+            <button class="btn-tbl danger" onclick="deleteSession(event, '${s.id}')">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function switchSession(sessionId) {
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/switch`, { method: 'POST' });
+        if (res.ok) {
+          activeSessionId = sessionId;
+          document.getElementById('telem-sess').textContent = activeSessionId;
+          await loadSessions();
+          await loadSessionMessages(sessionId);
+          switchNav('chat');
+          showToast(`Sesión activada: ${sessionId}`);
+        }
+      } catch (e) {}
+    }
+
+    async function deleteSession(event, sessionId) {
+      if (event) event.stopPropagation();
+      if (!confirm(`¿Eliminar permanentemente la sesión ${sessionId} y todo su historial?`)) return;
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+        if (res.ok) {
+          const data = await res.json();
+          activeSessionId = data.active_session.id;
+          document.getElementById('telem-sess').textContent = activeSessionId;
+          await loadSessions();
+          await loadSessionMessages(activeSessionId);
+          showToast(`Sesión eliminada: ${sessionId}`);
+        }
+      } catch (e) {}
+    }
+
+    function openNewSessionModal() {
+      document.getElementById('new-session-title').value = '';
+      document.getElementById('modal-new-session').classList.add('visible');
+    }
+
+    async function confirmCreateSession() {
+      const title = document.getElementById('new-session-title').value.trim();
+      closeModal('modal-new-session');
+      try {
+        const res = await fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: title || null }),
+        });
+        if (res.ok) {
+          const session = await res.json();
+          activeSessionId = session.id;
+          document.getElementById('telem-sess').textContent = activeSessionId;
+          await loadSessions();
+          await loadSessionMessages(activeSessionId);
+          switchNav('chat');
+          showToast(`Nueva sesión creada: ${session.id}`);
+        }
+      } catch (e) {}
+    }
+
+    // --- CHAT & ACTIONS ---
+    async function loadSessionMessages(sessionId) {
+      const chatContainer = document.getElementById('chat-messages');
+      chatContainer.innerHTML = '';
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/messages`);
+        const data = await res.json();
+
+        if (data.messages && data.messages.length > 0) {
+          data.messages.forEach(msg => {
+            appendChatMessage(msg.role, msg.content, msg.created_at);
+          });
+        } else {
+          chatContainer.innerHTML = `
+            <div style="text-align:center; padding: 40px; color:var(--text-dim); font-family:var(--font-mono); font-size:12px;">
+              [ SISTEMA MAGI NOMINAL // ESPERANDO INSTRUCCIONES ]<br>
+              Escribe un requerimiento técnico o usa '/' para autocompletar comandos.
+            </div>
+          `;
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      } catch (e) {}
+    }
+
+    function appendChatMessage(role, content, timestamp) {
+      const chatContainer = document.getElementById('chat-messages');
+      const row = document.createElement('div');
+      row.className = `message-row ${role}`;
+      const avatarText = role === 'user' ? 'OP' : 'MAGI';
+
+      // Parse simple markdown preview
+      let formatted = escapeHtml(content)
+        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      row.innerHTML = `
+        <div class="msg-avatar">${avatarText}</div>
+        <div class="msg-bubble">${formatted}</div>
+      `;
+      chatContainer.appendChild(row);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      input.style.height = '28px';
+      hideAutocomplete();
+
+      appendChatMessage('user', text);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, session_id: activeSessionId }),
+        });
+        const data = await res.json();
+        appendChatMessage('assistant', data.response);
+
+        // Si hay confirmaciones pendientes (Tier 2/3), agregar la tarjeta interactiva
+        if (data.pending_confirmations && data.pending_confirmations.length > 0) {
+          data.pending_confirmations.forEach(c => {
+            appendConfirmationCard(c.action_id, c.tool, c.tier, c.args);
+          });
+        }
+      } catch (e) {
+        appendChatMessage('assistant', `❌ Error de comunicación: ${e.message}`);
+      }
+    }
+
+    function appendConfirmationCard(actionId, toolName, tier, args) {
+      const chatContainer = document.getElementById('chat-messages');
+      const card = document.createElement('div');
+      card.className = 'confirm-card';
+      card.id = `conf-${actionId}`;
+      card.innerHTML = `
+        <h4>⚠️ AUTORIZACIÓN HUMANA REQUERIDA (TIER ${tier})</h4>
+        <p>
+          Acción: <code>${toolName}</code> (${actionId})<br>
+          Parámetros: <code>${JSON.stringify(args || {})}</code><br>
+          MAGI ha deliberado y aprobado por unanimidad. Confirma para proceder con la ejecución:
+        </p>
+        <div class="confirm-actions">
+          <button class="btn-confirm-act" onclick="confirmActionDirect('${actionId}')">CONFIRMAR (Ejecutar)</button>
+          <button class="btn-cancel-act" onclick="cancelActionDirect('${actionId}')">Cancelar</button>
+        </div>
+      `;
+      chatContainer.appendChild(card);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function confirmActionDirect(actionId) {
+      try {
+        const res = await fetch(`/api/actions/${actionId}/confirm`, { method: 'POST' });
+        const data = await res.json();
+        const card = document.getElementById(`conf-${actionId}`);
+        if (card) {
+          card.innerHTML = data.success
+            ? `<span style="color:var(--nerv-green); font-weight:700;">✅ Acción ${actionId} confirmada y ejecutada exitosamente.</span>`
+            : `<span style="color:var(--nerv-red); font-weight:700;">❌ Fallo en ejecución de ${actionId}: ${data.error}</span>`;
+        }
+        showToast(`Acción ${actionId} procesada.`);
+      } catch (e) {}
+    }
+
+    async function cancelActionDirect(actionId) {
+      try {
+        await fetch(`/api/actions/${actionId}/cancel`, { method: 'POST' });
+        const card = document.getElementById(`conf-${actionId}`);
+        if (card) {
+          card.innerHTML = `<span style="color:var(--text-muted);">🛑 Acción ${actionId} cancelada por el operador.</span>`;
+        }
+        showToast(`Acción ${actionId} cancelada.`);
+      } catch (e) {}
+    }
+
+    // --- AUTOCOMPLETE FOR '/' COMMANDS ---
+    function handleChatInput(e) {
+      const val = e.target.value;
+      // Auto expand textarea
+      e.target.style.height = 'auto';
+      e.target.style.height = (e.target.scrollHeight) + 'px';
+
+      if (val.startsWith('/')) {
+        showAutocomplete(val);
+      } else {
+        hideAutocomplete();
+      }
+    }
+
+    function handleChatKeyDown(e) {
+      const popover = document.getElementById('ac-popover');
+      const isVisible = popover.classList.contains('visible');
+
+      if (isVisible) {
+        const items = popover.querySelectorAll('.autocomplete-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          acSelectedIndex = (acSelectedIndex + 1) % items.length;
+          updateAcSelection(items);
+          return;
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          acSelectedIndex = (acSelectedIndex - 1 + items.length) % items.length;
+          updateAcSelection(items);
+          return;
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+          if (items.length > 0 && acSelectedIndex >= 0 && acSelectedIndex < items.length) {
+            e.preventDefault();
+            items[acSelectedIndex].click();
+            return;
+          }
+        } else if (e.key === 'Escape') {
+          hideAutocomplete();
+          return;
+        }
+      }
+
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    }
+
+    function showAutocomplete(query) {
+      const popover = document.getElementById('ac-popover');
+      const filterText = query.toLowerCase();
+      const matches = availableCommands.filter(c => c.command.toLowerCase().startsWith(filterText) || c.command.toLowerCase().includes(filterText.replace('/', '')));
+
+      if (matches.length === 0) {
+        hideAutocomplete();
+        return;
+      }
+
+      popover.innerHTML = '';
+      acSelectedIndex = 0;
+
+      matches.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = `autocomplete-item ${idx === 0 ? 'selected' : ''}`;
+        div.innerHTML = `
+          <div class="ac-cmd">
+            <span>${item.command}</span>
+            <span class="ac-args">${item.args}</span>
+          </div>
+          <div class="ac-desc">${item.description}</div>
+          <span class="ac-cat">${item.category}</span>
+        `;
+        div.onclick = () => {
+          selectCommand(item.command);
+        };
+        popover.appendChild(div);
+      });
+
+      popover.classList.add('visible');
+    }
+
+    function updateAcSelection(items) {
+      items.forEach((item, i) => {
+        item.classList.toggle('selected', i === acSelectedIndex);
+        if (i === acSelectedIndex) item.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    function hideAutocomplete() {
+      document.getElementById('ac-popover').classList.remove('visible');
+    }
+
+    function selectCommand(cmd) {
+      const input = document.getElementById('chat-input');
+      input.value = `${cmd} `;
+      input.focus();
+      hideAutocomplete();
+    }
+
+    function insertCommand(cmd) {
+      selectCommand(cmd);
+    }
+
+    // --- MINDS & TOLERANCE UI ---
+    async function loadMinds() {
+      try {
+        const res = await fetch('/api/minds');
+        mindsData = await res.json();
+        renderMinds();
+        updateHudBadges();
+      } catch (e) {}
+    }
+
+    function updateHudBadges() {
+      mindsData.forEach(m => {
+        const k = m.name.toLowerCase();
+        const tag = document.getElementById(`hud-tol-${k}`);
+        if (tag) tag.textContent = (m.tolerance_level || 'default').substring(0, 4).toUpperCase();
+      });
+    }
+
+    function renderMinds() {
+      const grid = document.getElementById('minds-grid');
+      grid.innerHTML = '';
+
+      mindsData.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'mind-card';
+        card.id = `mind-card-${m.name}`;
+
+        // Model options
+        const curatedModels = [
+          "ling-3.0-flash-fin:free",
+          "minimax-m3:free",
+          "anthropic/claude-3.5-sonnet",
+          "openai/gpt-4o",
+          "google/gemini-2.5-pro",
+          "deepseek/deepseek-chat",
+          "deepseek/deepseek-r1",
+          "meta-llama/llama-3.3-70b-instruct"
+        ];
+        let modelOptionsHtml = curatedModels.map(mod => `<option value="${mod}" ${m.model === mod ? 'selected' : ''}>${mod}</option>`).join('');
+        if (!curatedModels.includes(m.model)) {
+          modelOptionsHtml += `<option value="${m.model}" selected>${m.model} (personalizado)</option>`;
+        }
+
+        // Tolerance level options depending on isAdvancedMode
+        let tolOptionsHtml = `
+          <option value="default" ${m.tolerance_level === 'default' ? 'selected' : ''}>Default (Balanceado)</option>
+          <option value="seguridad" ${m.tolerance_level === 'seguridad' ? 'selected' : ''}>Seguridad (Tolerancia Cero)</option>
+        `;
+        if (isAdvancedMode) {
+          tolOptionsHtml += `
+            <option value="solo_personalidad" ${m.tolerance_level === 'solo_personalidad' ? 'selected' : ''}>Solo Personalidad (Prompt Pura)</option>
+            <option value="personalizado" ${m.tolerance_level === 'personalizado' ? 'selected' : ''}>Personalizado (Editor a Medida)</option>
+          `;
+        }
+
+        // Preview of tolerance block
+        let previewText = "";
+        if (m.tolerance_level === 'default') previewText = m.tolerance_defaults?.default || "";
+        else if (m.tolerance_level === 'seguridad') previewText = m.tolerance_defaults?.seguridad || "";
+        else if (m.tolerance_level === 'solo_personalidad') previewText = "(Sin directivas adicionales de tolerancia; rige solo el system prompt base)";
+        else if (m.tolerance_level === 'personalizado') previewText = m.custom_tolerance_prompt || "(Escribe abajo tu criterio personalizado de tolerancia)";
+
+        card.innerHTML = `
+          <div class="mind-card-header">
+            <div>
+              <div class="mind-title">${m.display_name}</div>
+              <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-dim);">IDENTIFICADOR: ${m.name}</span>
+            </div>
+            <span class="mind-tol-badge" id="card-tol-badge-${m.name}">${m.tolerance_level}</span>
+          </div>
+
+          <!-- Model -->
+          <div class="form-group">
+            <label class="form-label">Modelo LLM</label>
+            <div style="display:flex; gap:6px;">
+              <select class="form-select" id="model-select-${m.name}" style="flex:1;">
+                ${modelOptionsHtml}
+              </select>
+              <input type="text" class="form-control" id="model-custom-${m.name}" placeholder="Otro modelo OpenRouter..." style="flex:1;">
+            </div>
+          </div>
+
+          <!-- System Prompt (Personalidad) -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Personalidad (System Prompt)</span>
+              <span id="prompt-len-${m.name}">${m.system_prompt.length} chars</span>
+            </label>
+            <textarea class="form-control" id="prompt-${m.name}" rows="5">${escapeHtml(m.system_prompt)}</textarea>
+          </div>
+
+          <!-- Tolerance Level Setting -->
+          <div class="tolerance-box">
+            <div class="form-group">
+              <label class="form-label">
+                <span>Nivel de Tolerancia</span>
+                ${isAdvancedMode ? '<span style="color:var(--nerv-amber)">Modo Avanzado</span>' : ''}
+              </label>
+              <select class="form-select" id="tol-select-${m.name}" onchange="handleToleranceChange('${m.name}')">
+                ${tolOptionsHtml}
+              </select>
+            </div>
+
+            <!-- Injected prompt preview / editor (Visible only in Advanced Mode) -->
+            <div class="tolerance-preview-box ${isAdvancedMode ? 'visible' : ''}" id="tol-preview-wrap-${m.name}">
+              <h5>DIRECTIVA INYECTADA: PRIORIDAD: CRITERIO DE TOLERANCIA</h5>
+              ${m.tolerance_level === 'personalizado' && isAdvancedMode ? `
+                <textarea class="form-control" id="custom-tol-${m.name}" rows="3" placeholder="Redacta las líneas de tolerancia personalizada...">${escapeHtml(m.custom_tolerance_prompt || '')}</textarea>
+              ` : `
+                <div id="tol-preview-text-${m.name}" style="font-size:11px; white-space:pre-wrap;">${escapeHtml(previewText)}</div>
+              `}
+            </div>
+          </div>
+
+          <button class="btn-save-mind" onclick="saveMindConfig('${m.name}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Guardar Configuración de ${m.name}
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function handleToleranceChange(mindName) {
+      const select = document.getElementById(`tol-select-${mindName}`);
+      const val = select.value;
+      const mind = mindsData.find(m => m.name === mindName);
+      if (mind) {
+        mind.tolerance_level = val;
+        renderMinds();
+      }
+    }
+
+    async function saveMindConfig(mindName) {
+      const modelCustom = document.getElementById(`model-custom-${mindName}`).value.trim();
+      const modelSelect = document.getElementById(`model-select-${mindName}`).value;
+      const finalModel = modelCustom || modelSelect;
+      const systemPrompt = document.getElementById(`prompt-${mindName}`).value;
+      const tolLevel = document.getElementById(`tol-select-${mindName}`).value;
+
+      let customTol = null;
+      const customTolInput = document.getElementById(`custom-tol-${mindName}`);
+      if (customTolInput) customTol = customTolInput.value.trim();
+
+      const payload = {
+        model: finalModel,
+        system_prompt: systemPrompt,
+        tolerance_level: tolLevel,
+        custom_tolerance_prompt: customTol,
+      };
+
+      try {
+        const res = await fetch(`/api/minds/${mindName}/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          showToast(`Configuración de ${mindName} guardada correctamente.`);
+          await loadMinds();
+        } else {
+          showToast(`Error al guardar configuración de ${mindName}`);
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`);
+      }
+    }
+
+    function focusMind(mindName) {
+      setTimeout(() => {
+        const card = document.getElementById(`mind-card-${mindName}`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.boxShadow = '0 0 20px var(--nerv-amber)';
+          setTimeout(() => { card.style.boxShadow = ''; }, 2000);
+        }
+      }, 100);
+    }
+
+    // --- CRONJOBS ---
+    async function loadCronjobs() {
+      try {
+        const res = await fetch('/api/cronjobs');
+        const jobs = await res.json();
+        const tbody = document.getElementById('cronjobs-table-body');
+        tbody.innerHTML = '';
+
+        if (jobs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">No hay tareas programadas registradas.</td></tr>`;
+          return;
+        }
+
+        jobs.forEach(j => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${j.id}</code></td>
+            <td><code style="color:var(--nerv-amber); font-weight:700;">${j.expression}</code></td>
+            <td><strong>${escapeHtml(j.prompt || '')}</strong></td>
+            <td>${j.next_run ? j.next_run.replace('T', ' ').substring(0, 19) : '--'}</td>
+            <td>${j.last_run ? j.last_run.replace('T', ' ').substring(0, 19) : 'Pendiente'}</td>
+            <td>
+              <button class="btn-tbl" onclick="runCronjobDirect('${j.id}')">Ejecutar Ya</button>
+              <button class="btn-tbl danger" onclick="deleteCronjobDirect('${j.id}')">Eliminar</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {}
+    }
+
+    function openNewCronjobModal() {
+      document.getElementById('new-cron-expr').value = '';
+      document.getElementById('new-cron-prompt').value = '';
+      document.getElementById('modal-new-cronjob').classList.add('visible');
+    }
+
+    async function confirmCreateCronjob() {
+      const expr = document.getElementById('new-cron-expr').value.trim();
+      const prompt = document.getElementById('new-cron-prompt').value.trim();
+      if (!expr || !prompt) {
+        showToast("Debes ingresar la expresión cron y el prompt");
+        return;
+      }
+      closeModal('modal-new-cronjob');
+      try {
+        const res = await fetch('/api/cronjobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ expression: expr, prompt: prompt }),
+        });
+        if (res.ok) {
+          showToast("Tarea programada creada exitosamente.");
+          await loadCronjobs();
+        } else {
+          const err = await res.json();
+          showToast(`Error: ${err.detail || 'Fallo al crear'}`);
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`);
+      }
+    }
+
+    async function deleteCronjobDirect(jobId) {
+      if (!confirm(`¿Eliminar la tarea programada ${jobId}?`)) return;
+      try {
+        const res = await fetch(`/api/cronjobs/${jobId}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(`Tarea ${jobId} eliminada.`);
+          await loadCronjobs();
+        }
+      } catch (e) {}
+    }
+
+    async function runCronjobDirect(jobId) {
+      try {
+        const res = await fetch(`/api/cronjobs/${jobId}/run`, { method: 'POST' });
+        if (res.ok) {
+          showToast(`Disparada ejecución para ${jobId}.`);
+        }
+      } catch (e) {}
+    }
+
+    // --- PROVIDER ---
+    async function loadProviderConfig() {
+      try {
+        const res = await fetch('/api/provider');
+        const data = await res.json();
+        document.getElementById('provider-key-display').value = data.api_key_masked;
+      } catch (e) {}
+    }
+
+    async function promptNewApiKey() {
+      const key = prompt("Ingresa la nueva OpenRouter API Key:");
+      if (!key) return;
+      try {
+        const res = await fetch('/api/provider', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key.trim() }),
+        });
+        if (res.ok) {
+          showToast("API Key actualizada permanentemente en config/magi.env");
+          await loadProviderConfig();
+        }
+      } catch (e) {}
+    }
+
+    async function testProviderConnection() {
+      showToast("Verificando conexión con OpenRouter...");
+      try {
+        const res = await fetch('/api/provider/test', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast("🟢 Conexión exitosa con OpenRouter.");
+        } else {
+          showToast(`❌ Error de conexión: ${data.error}`);
+        }
+      } catch (e) {
+        showToast(`❌ Error: ${e.message}`);
+      }
+    }
+
+    // --- AUDIT LOGS ---
+    async function loadAuditLogs() {
+      try {
+        const res = await fetch('/api/audit?limit=30');
+        const logs = await res.json();
+        const tbody = document.getElementById('audit-table-body');
+        tbody.innerHTML = '';
+        logs.forEach(l => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${l.id}</code></td>
+            <td><strong style="color:var(--nerv-cyan)">${l.actor}</strong></td>
+            <td><code>${l.action}</code></td>
+            <td>${l.tier !== null ? `<span class="badge-status ${l.tier > 1 ? 'pending' : 'active'}">Tier ${l.tier}</span>` : '--'}</td>
+            <td><span style="font-size:11px; color:var(--text-muted);">${escapeHtml(l.detail || '')}</span></td>
+            <td>${l.created_at ? l.created_at.replace('T', ' ').substring(0, 19) : '--'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {}
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('visible');
+    }
+  </script>
+</body>
+</html>

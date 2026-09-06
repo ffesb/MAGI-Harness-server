@@ -1,0 +1,1 @@
+"""MAGI Web API Routes."""

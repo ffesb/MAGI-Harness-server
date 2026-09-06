@@ -19,6 +19,7 @@ from magi.executor.state import ServerStateManager
 from magi.executor.agent import ExecutorAgent
 from magi.scheduler.cron import CronScheduler
 from magi.scheduler.watcher import LogWatcher
+from magi.web.server import MagiWebServer
 
 
 class MagiDaemon:
@@ -72,6 +73,10 @@ class MagiDaemon:
             scheduler=self.scheduler,
             ipc=self.ipc,
         )
+
+        self.web_server: Optional[MagiWebServer] = None
+        if getattr(self.settings, "web_enabled", True):
+            self.web_server = MagiWebServer(self)
 
         self.running = False
         self._heartbeat_task: Optional[asyncio.Task] = None
@@ -249,6 +254,10 @@ class MagiDaemon:
         await self.telegram.start()
         print("[+] Telegram Adapter en línea y escuchando actualizaciones.")
 
+        # Iniciar Web Server (GUI)
+        if self.web_server:
+            await self.web_server.start()
+
         # Iniciar loop de heartbeat
         self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
         print("[+] Heartbeat interno activado (intervalo: 60s).")
@@ -279,6 +288,8 @@ class MagiDaemon:
         await self.log_watcher.stop()
         await self.scheduler.stop()
         await self.telegram.stop()
+        if self.web_server:
+            await self.web_server.stop()
         await self.ipc.stop()
 
         await self.audit.log_event(

@@ -17,7 +17,16 @@ class IpcServer:
         self.on_client_connected = on_client_connected
         self._server: Optional[asyncio.Server] = None
         self._clients: Set[asyncio.StreamWriter] = set()
+        self._event_listeners: List[
+            Callable[[str, Dict[str, Any]], Coroutine[Any, Any, None]]
+        ] = []
         self._running = False
+
+    def add_event_listener(
+        self,
+        callback: Callable[[str, Dict[str, Any]], Coroutine[Any, Any, None]],
+    ) -> None:
+        self._event_listeners.append(callback)
 
     async def start(self) -> None:
         self.socket_path.parent.mkdir(parents=True, exist_ok=True)
@@ -83,6 +92,15 @@ class IpcServer:
                 pass
 
     async def broadcast_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        # Notificar a listeners internos (WebSockets, monitores en proceso)
+        for listener in list(self._event_listeners):
+            try:
+                res = listener(event_type, data)
+                if asyncio.iscoroutine(res):
+                    asyncio.create_task(res)
+            except Exception:
+                pass
+
         if not self._clients:
             return
         payload = {"type": event_type, "data": data}
