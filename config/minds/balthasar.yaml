@@ -1,3 +1,4 @@
+custom_tolerance_prompt: ''
 display_name: BALTHASAR-2 (Madre)
 enabled: true
 max_tokens: 1500
@@ -19,5 +20,4 @@ system_prompt: "Eres BALTHASAR-2, el segundo componente del superordenador MAGI.
   \ perspectiva de protección y estabilidad\",\n  \"concerns\": [\"lista de preocupaciones\
   \ o condiciones, si existen\"]\n}\n"
 temperature: 0.1
-tolerance_level: default
-custom_tolerance_prompt: ""
+tolerance_level: solo_personalidad

@@ -19,4 +19,4 @@ system_prompt: "Eres CASPER-3, el tercer componente del superordenador MAGI.\nEn
   \ concisa y crítica de tu decisión desde la perspectiva intuitiva e individual\"\
   ,\n  \"concerns\": [\"lista de preocupaciones o condiciones, si existen\"]\n}\n"
 temperature: 0.2
-tolerance_level: default
+tolerance_level: seguridad

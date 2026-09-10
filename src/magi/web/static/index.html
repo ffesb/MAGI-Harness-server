@@ -6,7 +6,7 @@
   <title>MAGI HARNESS // NERV TACTICAL CONSOLE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:wght@800&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@500&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-void: #050508;
@@ -901,12 +901,180 @@
       animation: toastIn 0.2s ease;
     }
     @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* ================= TEMA NOIR · solo estética =================
+       Se activa con body:has(#theme-noir:checked). No toca lógica. */
+    body:has(#theme-noir:checked) { color-scheme: dark; }
+    body:has(#theme-noir:checked) {
+      --noir-ink: #E3995F;
+      --noir-soft: #C5561B;
+      --noir-faint: #B06A32;
+      --noir-title: #A5EED5;
+      --noir-seal: #7DFCD0;
+      --noir-mint: rgba(125,252,208,.5);
+      --noir-chip: rgba(125,252,208,.07);
+      --noir-chip-hi: rgba(125,252,208,.15);
+      --noir-panel: rgba(26,26,26,.85);
+      --noir-solid: #1A1A1A;
+      --noir-rail: rgba(26,26,26,.92);
+      --noir-shadow: 0 24px 70px -12px rgba(0,0,0,.8);
+      background-color: #040302;
+      color: var(--noir-ink);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    body:has(#theme-noir:checked) ::selection { background: #C5561B; color: #1A1A1A; }
+    body:has(#theme-noir:checked) ::-webkit-scrollbar-track { background: #0a0806; }
+    body:has(#theme-noir:checked) ::-webkit-scrollbar-thumb { background: #3a2a1c; }
+    body:has(#theme-noir:checked) ::-webkit-scrollbar-thumb:hover { background: var(--noir-soft); }
+
+    /* Header */
+    body:has(#theme-noir:checked) header {
+      background: rgba(10,8,6,.92);
+      border-bottom: 1px solid var(--noir-mint);
+      box-shadow: var(--noir-shadow);
+    }
+    body:has(#theme-noir:checked) .brand-text h1 { color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .brand-text span { color: var(--noir-faint); font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .2em; }
+    body:has(#theme-noir:checked) .brand-logo { background: var(--noir-soft); animation: none; }
+    body:has(#theme-noir:checked) .telemetry-bar { background: transparent; border-color: rgba(125,252,208,.25); font-variant-numeric: tabular-nums; }
+    body:has(#theme-noir:checked) .telem-label { color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .telem-val { color: var(--noir-soft); }
+    body:has(#theme-noir:checked) #telem-sess { color: var(--noir-ink) !important; }
+    body:has(#theme-noir:checked) .mind-pill { background: var(--noir-chip); border-color: var(--noir-mint); color: var(--noir-title); }
+    body:has(#theme-noir:checked) .mind-pill:hover { background: var(--noir-chip-hi); border-color: var(--noir-mint); transform: translateY(-1px); }
+    body:has(#theme-noir:checked) .mind-pill.state-deliberating { background: var(--noir-soft); border-color: var(--noir-soft); color: #1A1A1A; }
+    body:has(#theme-noir:checked) .mind-pill.state-approve { background: var(--noir-seal); border-color: var(--noir-seal); color: #1A1A1A; }
+    body:has(#theme-noir:checked) .adv-toggle-wrap { background: transparent; border-color: rgba(125,252,208,.25); color: var(--noir-faint); }
+    .noir-led { width: 8px; height: 8px; border-radius: 50%; background: #C5561B; flex-shrink: 0; animation: noirBlink 1.6s infinite; }
+    @keyframes noirBlink { 0%,100% { opacity: 1; box-shadow: 0 0 8px #C5561B; } 50% { opacity: .35; box-shadow: none; } }
+
+    /* Rail */
+    body:has(#theme-noir:checked) aside { background: var(--noir-rail); border-right: 1px solid rgba(125,252,208,.25); }
+    body:has(#theme-noir:checked) .nav-actions { border-bottom-color: rgba(125,252,208,.25); }
+    body:has(#theme-noir:checked) .btn-new-op { background: #C5561B; color: #1A1A1A; border-radius: 999px; box-shadow: none; }
+    body:has(#theme-noir:checked) .btn-new-op:hover { background: #E3995F; box-shadow: none; transform: translateY(-1px); }
+    body:has(#theme-noir:checked) .nav-link { color: var(--noir-ink); font-family: 'JetBrains Mono', monospace; }
+    body:has(#theme-noir:checked) .nav-link:hover { background: var(--noir-chip); color: var(--noir-title); }
+    body:has(#theme-noir:checked) .nav-link.active { color: var(--noir-title); background: var(--noir-chip); border-left: 3px solid var(--noir-mint); }
+    body:has(#theme-noir:checked) .sessions-sidebar-header { color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .session-item { color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .session-item:hover { background: var(--noir-chip); color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .session-item.active { background: var(--noir-chip); border-color: var(--noir-mint); color: var(--noir-title); }
+
+    /* Fondo video/imagen + velo + scanlines (capas solo visuales) */
+    body:has(#theme-noir:checked) main { background: transparent; }
+    .noir-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+    body:has(#theme-noir:checked) .noir-bg { display: block; }
+    #noir-bg-video { filter: saturate(.9); }
+    body[data-fondo="imagen"] #noir-bg-video { display: none; }
+    body[data-fondo="video"] #noir-bg-img { display: none; }
+    #noir-veil { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: none;
+      background: linear-gradient(180deg, rgba(14,11,8,.93), rgba(4,3,2,.97)); }
+    #noir-scan { position: absolute; inset: 0; z-index: 3; pointer-events: none; display: none; opacity: .12;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,.5) 0 1px, transparent 1px 3px); }
+    body:has(#theme-noir:checked) #noir-veil, body:has(#theme-noir:checked) #noir-scan { display: block; }
+    body:has(#theme-noir:checked) .view-container { position: relative; z-index: 2; }
+    body:has(#theme-noir:checked) #noir-hero { position: relative; z-index: 2; }
+
+    /* Hero */
+    #noir-hero { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 24px 8px; }
+    body:has(#theme-noir:checked) #view-chat[data-empty="true"] #noir-hero { display: flex; }
+    body:has(#theme-noir:checked) #view-chat[data-empty="true"] #chat-messages > div[style*="text-align:center"] { display: none; }
+    .noir-hero-title { font-family: 'Playfair Display', serif; font-weight: 800; color: #A5EED5;
+      font-size: clamp(2.6rem, 8.5vw, 7rem); line-height: 1; white-space: nowrap; }
+    .noir-hero-rule { display: flex; align-items: center; gap: 12px; margin: 22px 0 26px; width: min(560px, 70%); }
+    .noir-hero-rule::before, .noir-hero-rule::after { content: ""; flex: 1; height: 1px; background: rgba(125,252,208,.5); }
+    .noir-hero-rule i { width: 8px; height: 8px; background: rgba(125,252,208,.7); transform: rotate(45deg); }
+    .noir-seals { display: flex; gap: 18px; }
+    .noir-seal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .noir-seal b { font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: .3em; text-indent: .3em;
+      color: #7DFCD0; border: 2px solid #7DFCD0; border-radius: 8px; padding: 10px 14px 10px 18px; }
+    .noir-seal span { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .2em; color: #7DFCD0; font-variant-numeric: tabular-nums; }
+
+    /* Composer */
+    body:has(#theme-noir:checked) .chat-input-area { background: transparent; border-top: none; position: relative; z-index: 2; }
+    body:has(#theme-noir:checked) .chat-messages { position: relative; z-index: 2; }
+    .noir-composer-title { display: none; }
+    body:has(#theme-noir:checked) .noir-composer-title { display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--noir-ink); }
+    .noir-retro { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .2em; color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .input-box-wrapper { background: #1A1A1A; border: 1px solid transparent; border-bottom: 1px solid rgba(125,252,208,.5); border-radius: 4px; }
+    body:has(#theme-noir:checked) .input-box-wrapper:focus-within { border-bottom-color: rgba(125,252,208,.5); box-shadow: none; }
+    body:has(#theme-noir:checked) .chat-textarea { font-family: 'Unbounded', sans-serif; font-weight: 500; font-size: 16px; color: #E9D9CA; caret-color: #C5561B; }
+    body:has(#theme-noir:checked) .chat-textarea::placeholder { color: #B06A32; }
+    body:has(#theme-noir:checked) .btn-send { background: #C5561B; color: #1A1A1A; border-radius: 50%; width: 40px; height: 40px; }
+    body:has(#theme-noir:checked) .btn-send:hover { background: #E3995F; transform: scale(1.05); }
+    body:has(#theme-noir:checked) .chip { background: transparent; border-color: var(--noir-mint); color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .chip:hover { background: var(--noir-chip-hi); border-color: var(--noir-mint); color: var(--noir-title); }
+    body:has(#theme-noir:checked) .autocomplete-popover { background: var(--noir-solid); border-color: var(--noir-mint); }
+    body:has(#theme-noir:checked) .autocomplete-item:hover, body:has(#theme-noir:checked) .autocomplete-item.selected { background: var(--noir-chip-hi); }
+    body:has(#theme-noir:checked) .ac-cmd { color: var(--noir-ink); }
+    .noir-footline { display: none; }
+    body:has(#theme-noir:checked) .noir-footline { display: flex; align-items: center; gap: 12px; margin-top: 10px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .2em; color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .noir-footline::before, body:has(#theme-noir:checked) .noir-footline::after { content: ""; flex: 1; height: 1px; background: rgba(125,252,208,.5); }
+
+    /* Mensajes */
+    body:has(#theme-noir:checked) .msg-bubble { background: var(--noir-panel); border-color: rgba(125,252,208,.25); color: var(--noir-ink); box-shadow: var(--noir-shadow); }
+    body:has(#theme-noir:checked) .message-row.user .msg-bubble { background: var(--noir-solid); border-color: rgba(125,252,208,.25); color: #E9D9CA; }
+    body:has(#theme-noir:checked) .msg-bubble code { color: var(--noir-title); }
+    body:has(#theme-noir:checked) .msg-bubble pre { background: #0a0806; border-color: rgba(125,252,208,.25); color: var(--noir-title); }
+
+    /* Paneles / tablas / mentes / modales / toasts */
+    body:has(#theme-noir:checked) .panel-header h2 { color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .data-table-wrap, body:has(#theme-noir:checked) .mind-card,
+    body:has(#theme-noir:checked) .modal-dialog, body:has(#theme-noir:checked) .toast { background: var(--noir-panel); border-color: rgba(125,252,208,.25); box-shadow: var(--noir-shadow); }
+    body:has(#theme-noir:checked) .data-table th { background: rgba(0,0,0,.4); color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .data-table td { color: var(--noir-ink); border-bottom-color: rgba(125,252,208,.12); }
+    body:has(#theme-noir:checked) .mind-title, body:has(#theme-noir:checked) .modal-header h3 { color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .form-label { color: var(--noir-faint); }
+    body:has(#theme-noir:checked) .form-control, body:has(#theme-noir:checked) .form-select { background: var(--noir-solid); border-color: rgba(125,252,208,.25); color: #E9D9CA; }
+    body:has(#theme-noir:checked) .form-control:focus, body:has(#theme-noir:checked) .form-select:focus { border-color: var(--noir-mint); }
+    body:has(#theme-noir:checked) .btn-tbl { background: transparent; border-color: var(--noir-mint); color: var(--noir-ink); }
+    body:has(#theme-noir:checked) .btn-tbl:hover { background: var(--noir-chip-hi); color: var(--noir-title); border-color: var(--noir-mint); }
+    body:has(#theme-noir:checked) .btn-save-mind:hover { background: var(--noir-soft); border-color: var(--noir-soft); color: #1A1A1A; }
+    body:has(#theme-noir:checked) .modal-header, body:has(#theme-noir:checked) .modal-footer { background: rgba(0,0,0,.4); }
+
+    /* Ruedita ajustes */
+    #rail-toggle { display: none; }
+    .noir-gear-wrap { position: relative; }
+    #noir-gear { display: none; }
+    body:has(#theme-noir:checked) #noir-gear { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+      border-radius: 50%; background: transparent; border: 1px solid rgba(125,252,208,.25); color: var(--noir-ink); cursor: pointer; font-size: 15px; }
+    body:has(#theme-noir:checked) #noir-gear:hover { background: var(--noir-chip-hi); color: var(--noir-title); }
+    #noir-menu { display: none; position: absolute; right: 0; top: calc(100% + 8px); min-width: 240px; z-index: 400;
+      background: rgba(26,26,26,.97); border: 1px solid rgba(125,252,208,.5); border-radius: 8px; box-shadow: var(--noir-shadow); padding: 6px; }
+    #noir-menu.open { display: block; }
+    #noir-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;
+      background: transparent; border: none; color: #E3995F; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      padding: 9px 12px; border-radius: 5px; cursor: pointer; text-align: left; }
+    #noir-menu button:hover { background: rgba(125,252,208,.15); color: #A5EED5; }
+    #noir-menu .noir-menu-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .2em; color: #B06A32; }
+    #noir-menu hr { border: none; border-top: 1px solid rgba(125,252,208,.5); margin: 6px 4px; }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      body:has(#theme-noir:checked) aside { position: fixed; left: 0; top: 0; bottom: 0; z-index: 500; transform: translateX(-100%); transition: transform .2s ease; height: 100vh; }
+      body:has(#theme-noir:checked).rail-open aside { transform: translateX(0); box-shadow: var(--noir-shadow); }
+      body:has(#theme-noir:checked) #rail-toggle { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+        border-radius: 6px; background: transparent; border: 1px solid rgba(125,252,208,.25); color: var(--noir-ink); cursor: pointer; font-size: 16px; }
+    }
+    @media (max-width: 640px) {
+      body:has(#theme-noir:checked) .brand-text span { display: none; }
+      body:has(#theme-noir:checked) .telem-label { display: none; }
+      body:has(#theme-noir:checked) .mind-tol-tag { display: none; }
+      body:has(#theme-noir:checked) .noir-hero-title { white-space: normal; }
+      body:has(#theme-noir:checked) .magi-hud-mini { display: none; }
+      body:has(#theme-noir:checked) header { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body>
+  <input type="checkbox" id="theme-noir" checked hidden>
 
   <!-- Top Bar HUD -->
   <header>
+    <button id="rail-toggle" onclick="document.body.classList.toggle('rail-open')" title="Menú">☰</button>
     <div class="brand">
       <div class="brand-logo">666</div>
       <div class="brand-text">
@@ -917,6 +1085,7 @@
 
     <!-- Live Telemetry -->
     <div class="telemetry-bar">
+      <span class="noir-led" title="RUN"></span>
       <div class="telem-item">
         <span class="telem-label">CPU:</span>
         <span class="telem-val" id="telem-cpu">0.0%</span>
@@ -955,6 +1124,18 @@
     <div class="adv-toggle-wrap" title="Habilita modos de tolerancia 'Solo Personalidad' y 'Personalizado', y muestra el texto final inyectado">
       <input type="checkbox" id="chk-advanced" onchange="toggleAdvancedMode(this.checked)">
       <label for="chk-advanced">Configuración Avanzada</label>
+    </div>
+
+    <!-- Rueda de ajustes Noir (menú solo-estético que navega a vistas existentes) -->
+    <div class="noir-gear-wrap">
+      <button id="noir-gear" onclick="toggleNoirMenu(event)" title="Ajustes">⚙</button>
+      <div id="noir-menu">
+        <button onclick="noirGo('audit')"><span>Auditoría</span><span class="noir-menu-tag">SYS</span></button>
+        <button onclick="noirGo('minds')"><span>Mentes MAGI</span><span class="noir-menu-tag">SYS</span></button>
+        <button onclick="noirToggleAdvanced()"><span>Configuración avanzada</span><span class="noir-menu-tag" id="noir-adv-tag">OFF</span></button>
+        <hr>
+        <button onclick="toggleFondo(event)"><span>Fondo · Video</span><span class="noir-menu-tag" id="noir-fondo-tag">VIDEO</span></button>
+      </div>
     </div>
   </header>
 
@@ -1006,8 +1187,21 @@
 
     <!-- Main Content Area -->
     <main>
+      <video class="noir-bg" id="noir-bg-video" muted loop playsinline autoplay preload="auto"></video>
+      <img class="noir-bg" id="noir-bg-img" src="/static/fondo.png" alt="">
+      <div id="noir-veil"></div>
+      <div id="noir-scan"></div>
       <!-- View 1: Chat / Operations -->
-      <div class="view-container active" id="view-chat">
+      <div class="view-container active" id="view-chat" data-empty="true">
+        <div id="noir-hero">
+          <div class="noir-hero-title">MAGI Harness</div>
+          <div class="noir-hero-rule"><i></i></div>
+          <div class="noir-seals">
+            <div class="noir-seal"><b>承認</b><span>MELCHIOR·1</span></div>
+            <div class="noir-seal"><b>承認</b><span>MELCHIOR·1</span></div>
+            <div class="noir-seal"><b>承認</b><span>MELCHIOR·1</span></div>
+          </div>
+        </div>
         <div class="chat-messages" id="chat-messages">
           <!-- Dynamic conversation messages -->
         </div>
@@ -1027,18 +1221,22 @@
           </div>
 
           <div class="input-box-wrapper">
-            <textarea
-              class="chat-textarea"
-              id="chat-input"
-              rows="1"
-              placeholder="Instruye a la Ejecutora o escribe '/' para comandos..."
-              onkeydown="handleChatKeyDown(event)"
-              oninput="handleChatInput(event)"
-            ></textarea>
+            <div style="display:flex; flex-direction:column; flex:1;">
+              <div class="noir-composer-title">Ask the harness… <span class="noir-retro">RETRO-78</span></div>
+              <textarea
+                class="chat-textarea"
+                id="chat-input"
+                rows="1"
+                placeholder="Ask the harness to run..."
+                onkeydown="handleChatKeyDown(event)"
+                oninput="handleChatInput(event)"
+              ></textarea>
+            </div>
             <button class="btn-send" onclick="sendChatMessage()" title="Enviar comando">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
           </div>
+          <div class="noir-footline">MAGI Harness · Noir Plate</div>
         </div>
       </div>
 
@@ -1983,6 +2181,99 @@
         });
       } catch (e) {}
     }
+
+    // --- NOIR AESTHETIC HELPERS (solo presentación, sin lógica de negocio) ---
+    const NOIR_FONDO_VIDEO_SRC = '/static/fondo.mp4';
+
+    function noirVideoEl() { return document.getElementById('noir-bg-video'); }
+    function noirFondoTag() { return document.getElementById('noir-fondo-tag'); }
+
+    function setFondo(mode) {
+      document.body.dataset.fondo = mode;
+      try { localStorage.setItem('noir-fondo', mode); } catch (e) {}
+      const v = noirVideoEl();
+      if (v) {
+        if (mode === 'video') {
+          if (!v.getAttribute('src')) {
+            v.src = NOIR_FONDO_VIDEO_SRC;
+            v.load();
+          }
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          // Corte total: pausa, quita src y descarga el recurso
+          v.pause();
+          v.removeAttribute('src');
+          v.load();
+        }
+      }
+      const tag = noirFondoTag();
+      if (tag) tag.textContent = mode === 'video' ? 'VIDEO' : 'IMAGEN';
+    }
+
+    function toggleFondo(event) {
+      if (event) event.stopPropagation();
+      setFondo(document.body.dataset.fondo === 'imagen' ? 'video' : 'imagen');
+    }
+
+    function toggleNoirMenu(event) {
+      if (event) event.stopPropagation();
+      document.getElementById('noir-menu').classList.toggle('open');
+    }
+
+    function noirGo(view) {
+      document.getElementById('noir-menu').classList.remove('open');
+      document.body.classList.remove('rail-open');
+      switchNav(view);
+    }
+
+    function noirToggleAdvanced() {
+      const chk = document.getElementById('chk-advanced');
+      chk.checked = !chk.checked;
+      toggleAdvancedMode(chk.checked);
+      syncNoirAdvTag();
+    }
+
+    function syncNoirAdvTag() {
+      const tag = document.getElementById('noir-adv-tag');
+      const chk = document.getElementById('chk-advanced');
+      if (tag && chk) tag.textContent = chk.checked ? 'ON' : 'OFF';
+    }
+
+    function updateNoirHero() {
+      const view = document.getElementById('view-chat');
+      const box = document.getElementById('chat-messages');
+      if (!view || !box) return;
+      view.dataset.empty = box.querySelector('.message-row') ? 'false' : 'true';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      let saved = 'video';
+      try { saved = localStorage.getItem('noir-fondo') || 'video'; } catch (e) {}
+      if (saved !== 'video' && saved !== 'imagen') saved = 'video';
+      setFondo(saved);
+      syncNoirAdvTag();
+      updateNoirHero();
+      const box = document.getElementById('chat-messages');
+      if (box && window.MutationObserver) {
+        new MutationObserver(updateNoirHero).observe(box, { childList: true });
+      }
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.addEventListener('click', () => document.body.classList.remove('rail-open'));
+      });
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('noir-menu');
+        if (menu && menu.classList.contains('open') && !e.target.closest('.noir-gear-wrap')) {
+          menu.classList.remove('open');
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const menu = document.getElementById('noir-menu');
+          if (menu) menu.classList.remove('open');
+        }
+      });
+    });
 
     function closeModal(id) {
       document.getElementById(id).classList.remove('visible');
